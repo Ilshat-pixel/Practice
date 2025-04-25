@@ -18,7 +18,7 @@ class Program
     {
         string validationError = ValidateInputWithRegex(input);
 
-        if (validationError != null)
+        if (!string.IsNullOrEmpty(validationError))
         {
             return validationError;
         }
