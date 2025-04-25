@@ -23,6 +23,18 @@ class Program
             return validationError;
         }
 
+        // Обработка строки
+        string processedString = ProcessValidString(input);
+
+        // Подсчет символов
+        var charCounts = GetCharacterCounts(processedString);
+
+        // Формирование результата
+        return BuildResult(processedString, charCounts);
+    }
+
+    static string ProcessValidString(string input)
+    {
         int length = input.Length;
 
         if (length % 2 == 0)
@@ -73,5 +85,24 @@ class Program
         char[] charArray = s.ToCharArray();
         Array.Reverse(charArray);
         return new string(charArray);
+    }
+
+    static Dictionary<char, int> GetCharacterCounts(string str)
+    {
+        return str.GroupBy(c => c).ToDictionary(g => g.Key, g => g.Count());
+    }
+
+    static string BuildResult(string processedString, Dictionary<char, int> charCounts)
+    {
+        var result = new StringBuilder();
+        result.AppendLine($"Обработанная строка: {processedString}");
+        result.AppendLine("Количество повторений каждого символа:");
+
+        foreach (var pair in charCounts.OrderBy(p => p.Key))
+        {
+            result.AppendLine($"'{pair.Key}': {pair.Value} раз(а)");
+        }
+
+        return result.ToString();
     }
 }
