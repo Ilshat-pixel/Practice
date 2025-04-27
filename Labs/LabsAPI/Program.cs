@@ -13,8 +13,9 @@ public class Program
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
+
         builder.Services.AddSwaggerGen();
-        builder.Services.AddTransient<IProcessHandler, ProcessHandler>();
+        builder.Services.AddScoped<IProcessHandler, ProcessHandler>();
         builder.Services.AddHttpClient();
         var app = builder.Build();
 

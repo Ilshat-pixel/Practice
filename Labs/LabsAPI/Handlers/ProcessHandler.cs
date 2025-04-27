@@ -12,23 +12,34 @@ public interface IProcessHandler
 public class ProcessHandler : IProcessHandler
 {
     private readonly IHttpClientFactory _httpClientFactory;
-
+    private readonly string _apiUrl;
+    private readonly List<string> _blacklistedWords;
     private readonly Random _random = new();
     private static readonly HashSet<char> Vowels = new() { 'a', 'e', 'i', 'o', 'u', 'y' };
 
-    public ProcessHandler(IHttpClientFactory httpClientFactory)
+    public ProcessHandler(IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
         _httpClientFactory = httpClientFactory;
+        _apiUrl = configuration.GetValue<string>("RandomNumberApi")!;
+        _blacklistedWords = configuration.GetSection("BlacklistedWords").Get<List<string>>();
     }
 
     public async Task<ResultModel> GetResultAsync(string inputString, bool isQuickSort)
     {
         var validationError = ValidateInputWithRegex(inputString);
+
         if (!string.IsNullOrEmpty(validationError))
         {
             return new ResultModel { Error = validationError };
         }
 
+        if (_blacklistedWords.Contains(inputString.ToLower()))
+        {
+            return new ResultModel
+            {
+                Error = $"Ошибка: строка '{inputString}' находится в чёрном списке"
+            };
+        }
         string processedString = ProcessValidString(inputString);
         int randomIndex = await GetRandomIndex(processedString.Length);
         string trimmedString = RemoveCharAtPosition(processedString, randomIndex);
@@ -94,8 +105,7 @@ public class ProcessHandler : IProcessHandler
         try
         {
             var httpClient = _httpClientFactory.CreateClient();
-            string apiUrl =
-                $"http://www.randomnumberapi.com/api/v1.0/random?min=0&max={maxValue - 1}&count=1";
+            string apiUrl = $"{_apiUrl}?min=0&max={maxValue - 1}&count=1";
             HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
 
             if (response.IsSuccessStatusCode)
