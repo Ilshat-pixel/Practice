@@ -1,4 +1,5 @@
 using LabsAPI.Handlers;
+using LabsAPI.Model;
 
 namespace LabsAPI;
 
@@ -13,6 +14,9 @@ public class Program
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
+        builder.Services.Configure<RateLimitingSettings>(
+            builder.Configuration.GetSection("RateLimiting")
+        );
 
         builder.Services.AddSwaggerGen();
         builder.Services.AddScoped<IProcessHandler, ProcessHandler>();
@@ -30,6 +34,7 @@ public class Program
 
         app.UseAuthorization();
 
+        app.UseMiddleware<ConcurrentRequestsLimiterMiddleware>();
         app.MapControllers();
 
         app.Run();
