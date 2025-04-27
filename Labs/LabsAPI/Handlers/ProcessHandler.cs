@@ -21,7 +21,7 @@ public class ProcessHandler : IProcessHandler
     {
         _httpClientFactory = httpClientFactory;
         _apiUrl = configuration.GetValue<string>("RandomNumberApi")!;
-        _blacklistedWords = configuration.GetSection("BlacklistedWords").Get<List<string>>();
+        _blacklistedWords = configuration.GetSection("BlacklistedWords").Get<List<string>>() ?? [];
     }
 
     public async Task<ResultModel> GetResultAsync(string inputString, bool isQuickSort)
@@ -125,7 +125,7 @@ public class ProcessHandler : IProcessHandler
         return _random.Next(0, maxValue);
     }
 
-    static string RemoveCharAtPosition(string str, int index)
+    private string RemoveCharAtPosition(string str, int index)
     {
         if (string.IsNullOrEmpty(str) || index < 0 || index >= str.Length)
             return str;
@@ -133,7 +133,7 @@ public class ProcessHandler : IProcessHandler
         return str.Remove(index, 1);
     }
 
-    static string FindMaxVowelSubstring(string str)
+    private string FindMaxVowelSubstring(string str)
     {
         int maxLength = 0;
         string result = "";
@@ -171,7 +171,7 @@ public class ProcessHandler : IProcessHandler
         return result;
     }
 
-    static string ProcessValidString(string input)
+    private string ProcessValidString(string input)
     {
         int length = input.Length;
 
@@ -189,7 +189,7 @@ public class ProcessHandler : IProcessHandler
         }
     }
 
-    static string ValidateInputWithRegex(string input)
+    private string ValidateInputWithRegex(string input)
     {
         // Регулярное выражение для проверки на строчные английские буквы
         var regex = new Regex(@"^[a-z]+$");
@@ -218,19 +218,19 @@ public class ProcessHandler : IProcessHandler
         return string.Empty;
     }
 
-    static string ReverseString(string s)
+    private string ReverseString(string s)
     {
         char[] charArray = s.ToCharArray();
         Array.Reverse(charArray);
         return new string(charArray);
     }
 
-    static Dictionary<char, int> GetCharacterCounts(string str)
+    private Dictionary<char, int> GetCharacterCounts(string str)
     {
         return str.GroupBy(c => c).ToDictionary(g => g.Key, g => g.Count());
     }
 
-    static string BuildResult(
+    private string BuildResult(
         string processedString,
         Dictionary<char, int> charCounts,
         string maxVowelSubstring,
@@ -257,7 +257,7 @@ public class ProcessHandler : IProcessHandler
         return result.ToString();
     }
 
-    static string QuickSortString(string s)
+    private string QuickSortString(string s)
     {
         if (s.Length <= 1)
             return s;
@@ -267,7 +267,7 @@ public class ProcessHandler : IProcessHandler
         return new string(chars);
     }
 
-    static void QuickSort(char[] arr, int left, int right)
+    private void QuickSort(char[] arr, int left, int right)
     {
         if (left < right)
         {
@@ -277,7 +277,7 @@ public class ProcessHandler : IProcessHandler
         }
     }
 
-    static int Partition(char[] arr, int left, int right)
+    private int Partition(char[] arr, int left, int right)
     {
         char pivot = arr[right];
         int i = left - 1;
@@ -295,13 +295,13 @@ public class ProcessHandler : IProcessHandler
         return i + 1;
     }
 
-    static void Swap(ref char a, ref char b)
+    private void Swap(ref char a, ref char b)
     {
         (a, b) = (b, a);
     }
 
     // Реализация TreeSort для строки
-    static string TreeSortString(string s)
+    private string TreeSortString(string s)
     {
         if (string.IsNullOrEmpty(s))
             return s;
@@ -313,11 +313,6 @@ public class ProcessHandler : IProcessHandler
         }
 
         return tree.InOrderTraversal();
-    }
-
-    public Task<ResultModel> GetResultAsync(string inputString)
-    {
-        throw new NotImplementedException();
     }
 }
 
