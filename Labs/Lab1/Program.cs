@@ -3,6 +3,16 @@ using System.Text.RegularExpressions;
 
 class Program
 {
+    private static readonly HashSet<char> Vowels = new HashSet<char>
+    {
+        'a',
+        'e',
+        'i',
+        'o',
+        'u',
+        'y'
+    };
+
     static void Main(string[] args)
     {
         Console.WriteLine(ProcessString("a"));
@@ -29,8 +39,48 @@ class Program
         // Подсчет символов
         var charCounts = GetCharacterCounts(processedString);
 
+        string maxVowelSubstring = FindMaxVowelSubstring(processedString);
+
         // Формирование результата
-        return BuildResult(processedString, charCounts);
+        return BuildResult(processedString, charCounts, maxVowelSubstring);
+    }
+
+    static string FindMaxVowelSubstring(string str)
+    {
+        int maxLength = 0;
+        string result = "";
+        List<int> vowelIndices = new List<int>();
+
+        for (int i = 0; i < str.Length; i++)
+        {
+            if (Vowels.Contains(str[i]))
+            {
+                vowelIndices.Add(i);
+            }
+        }
+
+        if (vowelIndices.Count < 2)
+        {
+            return "Нет подходящей подстроки (требуется минимум 2 гласные)";
+        }
+
+        for (int i = 0; i < vowelIndices.Count - 1; i++)
+        {
+            for (int j = i + 1; j < vowelIndices.Count; j++)
+            {
+                int start = vowelIndices[i];
+                int end = vowelIndices[j];
+                int length = end - start + 1;
+
+                if (length > maxLength)
+                {
+                    maxLength = length;
+                    result = str.Substring(start, length);
+                }
+            }
+        }
+
+        return result;
     }
 
     static string ProcessValidString(string input)
@@ -92,7 +142,11 @@ class Program
         return str.GroupBy(c => c).ToDictionary(g => g.Key, g => g.Count());
     }
 
-    static string BuildResult(string processedString, Dictionary<char, int> charCounts)
+    static string BuildResult(
+        string processedString,
+        Dictionary<char, int> charCounts,
+        string maxVowelSubstring
+    )
     {
         var result = new StringBuilder();
         result.AppendLine($"Обработанная строка: {processedString}");
@@ -103,6 +157,7 @@ class Program
             result.AppendLine($"'{pair.Key}': {pair.Value} раз(а)");
         }
 
+        result.AppendLine($"Самая длинная подстрока между гласными: {maxVowelSubstring}");
         return result.ToString();
     }
 }
