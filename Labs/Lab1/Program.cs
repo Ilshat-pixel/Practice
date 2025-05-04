@@ -13,18 +13,21 @@ class Program
         'y'
     };
 
-    static void Main(string[] args)
+    private static readonly HttpClient httpClient = new HttpClient();
+    private static readonly Random random = new Random();
+
+    static async Task Main(string[] args)
     {
-        Console.WriteLine(ProcessString("a"));
-        Console.WriteLine(ProcessString("abcdef"));
-        Console.WriteLine(ProcessString("abcde"));
+        Console.WriteLine(await ProcessString("a"));
+        Console.WriteLine(await ProcessString("abcdef"));
+        Console.WriteLine(await ProcessString("abcde"));
 
         Console.Write("Введите строку: ");
         string userInput = Console.ReadLine();
-        Console.WriteLine(ProcessString(userInput));
+        Console.WriteLine(await ProcessString(userInput));
     }
 
-    static string ProcessString(string input)
+    static async Task<string> ProcessString(string input)
     {
         string validationError = ValidateInputWithRegex(input);
 
@@ -35,6 +38,10 @@ class Program
 
         // Обработка строки
         string processedString = ProcessValidString(input);
+
+        // Получаем случайное число
+        int randomIndex = await GetRandomIndex(processedString.Length);
+        string trimmedString = RemoveCharAtPosition(processedString, randomIndex);
 
         // Подсчет символов
         var charCounts = GetCharacterCounts(processedString);
@@ -51,7 +58,52 @@ class Program
             sortChoice == 1 ? QuickSortString(processedString) : TreeSortString(processedString);
 
         // Формирование результата
-        return BuildResult(processedString, charCounts, maxVowelSubstring, sortedString);
+        return BuildResult(
+            processedString,
+            charCounts,
+            maxVowelSubstring,
+            sortedString,
+            trimmedString,
+            randomIndex
+        );
+    }
+
+    static async Task<int> GetRandomIndex(int maxValue)
+    {
+        if (maxValue <= 0)
+            return 0;
+
+        try
+        {
+            string apiUrl =
+                $"http://www.randomnumberapi.com/api/v1.0/random?min=0&max={maxValue - 1}&count=1";
+            HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string content = await response.Content.ReadAsStringAsync();
+                // Content comes in format like [5], so we need to parse it
+                if (int.TryParse(content.Trim('[', ']'), out int result))
+                {
+                    return result;
+                }
+            }
+        }
+        catch
+        {
+            // Fall through to local random if API fails
+        }
+
+        // Fallback to local random number generator
+        return random.Next(0, maxValue);
+    }
+
+    static string RemoveCharAtPosition(string str, int index)
+    {
+        if (string.IsNullOrEmpty(str) || index < 0 || index >= str.Length)
+            return str;
+
+        return str.Remove(index, 1);
     }
 
     static string FindMaxVowelSubstring(string str)
@@ -155,7 +207,9 @@ class Program
         string processedString,
         Dictionary<char, int> charCounts,
         string maxVowelSubstring,
-        string sortedString
+        string sortedString,
+        string trimmedString,
+        int removedIndex
     )
     {
         var result = new StringBuilder();
@@ -169,6 +223,10 @@ class Program
 
         result.AppendLine($"Самая длинная подстрока между гласными: {maxVowelSubstring}");
         result.AppendLine($"Отсортированная строка: {sortedString}");
+        result.AppendLine(
+            $"Удалён символ на позиции {removedIndex}: '{processedString[removedIndex]}'"
+        );
+        result.AppendLine($"Урезанная строка: {trimmedString}");
         return result.ToString();
     }
 
